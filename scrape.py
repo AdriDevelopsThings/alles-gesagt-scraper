@@ -4,7 +4,7 @@ from os.path import join, exists
 from os import mkdir
 import requests
 from threading import Thread, Lock
-from queue import Queue, ShutDown
+from queue import Queue, Empty
 from time import sleep
 
 URL = "https://www.zeit.de/serie/alles-gesagt"
@@ -56,12 +56,12 @@ This worker gets an element from the queue, download this element and puts
 download information in the `currently_downloading` dict. The function of the lock
 is to prevent that two threads doing weird things at `currently_downloading` at the same time.
 """
-def worker(queue: Queue, currently_downloading: dict, lock: Lock):
-    while not queue.is_shutdown:
+def worker(queue: Queue, currently_downloading: dict, lock: Lock, finish: list[bool]):
+    while not finish[0]:
         try:
-            i = queue.get()
-        except ShutDown:
-            break
+            i = queue.get(timeout=1)
+        except Empty:
+            continue
         lock.acquire()
         # 0% downloaded at start
         currently_downloading[i["display_filename"]] = 0
@@ -129,7 +129,7 @@ def main():
     # construct threads and start them
     threads = []
     for i in range(WORKER_COUNT):
-        thread = Thread(target=worker, args=(queue, currently_downloading, currently_downloading_lock))
+        thread = Thread(target=worker, args=(queue, currently_downloading, currently_downloading_lock, finish))
         thread.start()
         threads.append(thread)
     di_thread = Thread(target=downloading_info_thread, args=(currently_downloading, currently_downloading_lock, finish))
@@ -150,7 +150,6 @@ def main():
         })
     # wait until the queue gets empty
     queue.join()
-    queue.shutdown()
     finish[0] = True # stop the downloading info thread
     # join threads
     for t in threads:
