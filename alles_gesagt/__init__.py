@@ -13,7 +13,7 @@ from alles_gesagt.episodes import query_episodes
 from alles_gesagt.worker import WorkerQueueElement, worker
 
 parser = ArgumentParser()
-parser.add_argument("-w", "--worker-count", default=4)
+parser.add_argument("-w", "--worker-count", type=int, default=4)
 parser.add_argument(
     "-o",
     "--output",
