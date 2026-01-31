@@ -1,2 +1,6 @@
 /.venv
+/.mypy_cache
 /episodes
+/build
+__pycache__
+*.egg-info
