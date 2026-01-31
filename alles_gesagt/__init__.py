@@ -41,6 +41,7 @@ def main() -> None:
     currently_downloading: dict[str, int] = {}
     queue: Queue[WorkerQueueElement] = Queue()
     finish = [False]
+    finish_info = [False]
 
     # construct threads and start them
     threads = []
@@ -53,7 +54,7 @@ def main() -> None:
         threads.append(thread)
     di_thread = Thread(
         target=downloading_info_thread,
-        args=(currently_downloading, currently_downloading_lock, finish),
+        args=(currently_downloading, currently_downloading_lock, finish_info),
     )
     di_thread.start()
 
@@ -77,8 +78,9 @@ def main() -> None:
         queue.join()
     except KeyboardInterrupt:
         print("Finishing last download, then exiting")
-    finish[0] = True  # stop the downloading info thread
+    finish[0] = True  # stop worker threads
     # join threads
     for t in threads:
         t.join()
+    finish_info[0] = True # stop the downloading info thread
     di_thread.join()
