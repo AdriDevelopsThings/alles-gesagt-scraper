@@ -30,7 +30,7 @@ def __query_bs4(url: str) -> Optional[BeautifulSoup]:
     return BeautifulSoup(text, features="html.parser")
 
 
-def query_episodes() -> Generator[Episode]:
+def query_episodes() -> Generator[Episode, None, None]:
     page = 1
     while True:
         bs4 = __query_bs4(URL + f"?p={page}")
